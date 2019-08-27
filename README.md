@@ -21,7 +21,15 @@ public @interface BindView {
     int value();
 }
 ```
+### 3.2.绑定已经生成代码类的实现
+主要通过反射实例化**_ViewBinding 达到初始化View并事项onClick的操作，主要代买如下：
+```java
+String clsName = cls.getName();
+bindingClass = cls.getClassLoader().loadClass(clsName + "_ViewBinding");
+constructor.newInstance(target, source);
+```
+### 3.3.绑定已经生成代码类的实现
 
-### 3.4.绑定已经生成代码类的实现
-####3.4.1 代码绑定
+#### 3.3.1 代码绑定
+在butterKnife-compilermodule的main目录下创建resources/META-INF/services文件夹，再创建javax.annotation.processing.Processor文件，文件中写BindViewProcessor的全类名
 
