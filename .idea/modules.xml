@@ -4,6 +4,10 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Butterknife.iml" filepath="$PROJECT_DIR$/Butterknife.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/butterKnife_annoation/butterKnife_annoation.iml" filepath="$PROJECT_DIR$/butterKnife_annoation/butterKnife_annoation.iml" />
+      <module fileurl="file://$PROJECT_DIR$/butterKnife-annoation/butterKnife_annoation.iml" filepath="$PROJECT_DIR$/butterKnife-annoation/butterKnife_annoation.iml" />
+      <module fileurl="file://$PROJECT_DIR$/butterKnife_compiler/butterKnife_compiler.iml" filepath="$PROJECT_DIR$/butterKnife_compiler/butterKnife_compiler.iml" />
+      <module fileurl="file://$PROJECT_DIR$/butterknife_core/butterknife_core.iml" filepath="$PROJECT_DIR$/butterknife_core/butterknife_core.iml" />
     </modules>
   </component>
 </project>
