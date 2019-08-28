@@ -20,34 +20,34 @@
 
 
     <TextView
-        android:id="@+id/txtSecond"
+        android:id="@+id/txtMain"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:gravity="center"
-        android:text="txtMain"
+        android:text="butThree"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/txtTitleAll" />
 
     <Button
-        android:id="@+id/butOne"
+        android:id="@+id/butThree"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
-        android:text="butOne"
+        android:text="butThree"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtSecond" />
+        app:layout_constraintTop_toBottomOf="@id/txtMain" />
 
     <Button
-        android:id="@+id/butTwo"
+        android:id="@+id/butFour"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
-        android:text="butTwo"
+        android:text="butFour"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/butOne" />
+        app:layout_constraintTop_toBottomOf="@id/butThree" />
 
 </android.support.constraint.ConstraintLayout>

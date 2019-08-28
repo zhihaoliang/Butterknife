@@ -1,4 +1,4 @@
-package com.zhihaoliang.butterknife_annoation;
+package com.zhihaoliang.annoation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
