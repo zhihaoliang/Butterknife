@@ -76,7 +76,7 @@ public class BindProcessor extends AbstractProcessor {
         log.e("=========proce11ss00 ============");
         if (set != null && !set.isEmpty()) {
             Map<String, ElementBean> map = new HashMap<>();
-            initBindViewBean(roundEnvironment, map);
+            initBindViewBean(roundEnvironment, map, 0);
 
             for (Map.Entry<String, ElementBean> entry : map.entrySet()) {
                 String key = entry.getKey();
@@ -105,8 +105,17 @@ public class BindProcessor extends AbstractProcessor {
         return annotations;
     }
 
-    private void initBindViewBean(RoundEnvironment roundEnvironment, Map<String, ElementBean> map) {
-        Set<? extends Element> bindViewElementsAnnotatedWith = roundEnvironment.getElementsAnnotatedWith(BindView.class);
+    private Class<? extends Annotation> getTypeByState(int state) {
+        switch (state) {
+            case 0:
+                return BindView.class;
+            default:
+                return OnClick.class;
+        }
+    }
+
+    private void initBindViewBean(RoundEnvironment roundEnvironment, Map<String, ElementBean> map, int state) {
+        Set<? extends Element> bindViewElementsAnnotatedWith = roundEnvironment.getElementsAnnotatedWith(getTypeByState(state));
 
         for (Element element : bindViewElementsAnnotatedWith) {
             Element classElement = element.getEnclosingElement();
@@ -129,12 +138,23 @@ public class BindProcessor extends AbstractProcessor {
 
             BindViewBean bindViewBean = new BindViewBean();
             bindViewBean.setFiledName(element.getSimpleName().toString());
-            bindViewBean.setId( element.getAnnotation(BindView.class).value());
+            initBindViewBean(element,bindViewBean,state);
+
             elementBean.getBindViewBeans().add(bindViewBean);
             //添加父类节点
             if (!superClassName.startsWith("android.") && !superClassName.startsWith("java.")) {
                 elementBean.setSuperClass(superClassName);
             }
+        }
+    }
+
+    private void initBindViewBean(Element element, BindViewBean bindViewBean, int state) {
+        switch (state) {
+            case 0:
+                bindViewBean.setId(element.getAnnotation(BindView.class).value());
+                break;
+            default:
+                break;
         }
     }
 
@@ -169,7 +189,7 @@ public class BindProcessor extends AbstractProcessor {
         for (BindViewBean bindViewBean : bindViewBeans) {
             String filedName = bindViewBean.getFiledName();
             if (!isEmpty(filedName)) {
-                constructorMethodBuilder.addStatement("$L.$L = $L.findViewById($L)", TARGET, filedName, VIEW,bindViewBean.getId());
+                constructorMethodBuilder.addStatement("$L.$L = $L.findViewById($L)", TARGET, filedName, VIEW, bindViewBean.getId());
             }
             String methodName = bindViewBean.getMethodName();
 
@@ -178,7 +198,7 @@ public class BindProcessor extends AbstractProcessor {
             }
 
             if (isEmpty(filedName)) {
-                constructorMethodBuilder.addStatement("view$L = $L.findViewById($L)", bindViewBean.getId(), VIEW,bindViewBean.getId());
+                constructorMethodBuilder.addStatement("view$L = $L.findViewById($L)", bindViewBean.getId(), VIEW, bindViewBean.getId());
                 filedName = String.format("view$L", bindViewBean.getId());
             }
 
