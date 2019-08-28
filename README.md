@@ -28,8 +28,30 @@ String clsName = cls.getName();
 bindingClass = cls.getClassLoader().loadClass(clsName + "_ViewBinding");
 constructor.newInstance(target, source);
 ```
-### 3.3.绑定已经生成代码类的实现
+### 3.3. 绑定已经生成代码类的实现
 
-#### 3.3.1 代码绑定
+#### 3.3.1. 代码绑定运行
 在butterKnife-compilermodule的main目录下创建resources/META-INF/services文件夹，再创建javax.annotation.processing.Processor文件，文件中写BindViewProcessor的全类名
+
+#### 3.3.2. 查看gradle的编译log
+![blockchain](https://raw.githubusercontent.com/zhihaoliang/Butterknife/master/image/gradle_log.png "示例图") 
+
+#### 3.3.3. butterKnife_compiler debug的设置  
+
+##### 3.3.3.1. remote module 创建
+![blockchain](https://raw.githubusercontent.com/zhihaoliang/Butterknife/master/image/go.png "示例图") 
+
+##### 3.3.3.2. remote module 的copy
+copy下面红色选中的文章
+![blockchain](https://raw.githubusercontent.com/zhihaoliang/Butterknife/master/image/remote.png "示例图") 
+##### 3.3.3.3. gradlew 的修改
+把上一步copy替换到gradlew文件中
+![blockchain](https://raw.githubusercontent.com/zhihaoliang/Butterknife/master/image/gradlew.png "示例图") 
+
+##### 3.3.3.4. 运行Unnamed 然后再选中APP运行就可以
+![blockchain](https://raw.githubusercontent.com/zhihaoliang/Butterknife/master/image/debug.png "示例图") 
+
+
+
+
 
