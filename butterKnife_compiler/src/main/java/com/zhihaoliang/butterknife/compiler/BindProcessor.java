@@ -73,10 +73,10 @@ public class BindProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        log.e("=========process00 ============");
+        log.e("=========proce11ss00 ============");
         if (set != null && !set.isEmpty()) {
             Map<String, ElementBean> map = new HashMap<>();
-            initBindViewBean(roundEnvironment,map);
+            initBindViewBean(roundEnvironment, map);
 
             for (Map.Entry<String, ElementBean> entry : map.entrySet()) {
                 String key = entry.getKey();
@@ -87,7 +87,8 @@ public class BindProcessor extends AbstractProcessor {
         return false;
     }
 
-    @Override public Set<String> getSupportedAnnotationTypes() {
+    @Override
+    public Set<String> getSupportedAnnotationTypes() {
         Set<String> types = new LinkedHashSet<>();
         for (Class<? extends Annotation> annotation : getSupportedAnnotations()) {
             types.add(annotation.getCanonicalName());
@@ -128,7 +129,8 @@ public class BindProcessor extends AbstractProcessor {
 
             BindViewBean bindViewBean = new BindViewBean();
             bindViewBean.setFiledName(element.getSimpleName().toString());
-
+            bindViewBean.setId( element.getAnnotation(BindView.class).value());
+            elementBean.getBindViewBeans().add(bindViewBean);
             //添加父类节点
             if (!superClassName.startsWith("android.") && !superClassName.startsWith("java.")) {
                 elementBean.setSuperClass(superClassName);
@@ -158,30 +160,30 @@ public class BindProcessor extends AbstractProcessor {
                 .addModifiers(Modifier.PUBLIC);
 
         if (hasSuperClass(elementBean.getSuperClass(), map)) {
-            constructorMethodBuilder.addStatement("super(%s, %s)", TARGET, VIEW);
+            constructorMethodBuilder.addStatement("super($L, $L)", TARGET, VIEW);
         }
 
         //  构造函数中添加代码块
-        constructorMethodBuilder.addStatement("this.%s = %s", TARGET, TARGET);
+        constructorMethodBuilder.addStatement("this.$L = $L", TARGET, TARGET);
 
         for (BindViewBean bindViewBean : bindViewBeans) {
             String filedName = bindViewBean.getFiledName();
             if (!isEmpty(filedName)) {
-                constructorMethodBuilder.addStatement("%s.%s = source.findViewById(%d)", TARGET,filedName, bindViewBean.getId());
+                constructorMethodBuilder.addStatement("$L.$L = $L.findViewById($L)", TARGET, filedName, VIEW,bindViewBean.getId());
             }
             String methodName = bindViewBean.getMethodName();
 
-            if(isEmpty(methodName)){
+            if (isEmpty(methodName)) {
                 continue;
             }
 
-            if(isEmpty(filedName)){
-                constructorMethodBuilder.addStatement("view%d = source.findViewById(%d)", bindViewBean.getId(), bindViewBean.getId());
-                filedName = String.format("view%d",bindViewBean.getId());
+            if (isEmpty(filedName)) {
+                constructorMethodBuilder.addStatement("view$L = $L.findViewById($L)", bindViewBean.getId(), VIEW,bindViewBean.getId());
+                filedName = String.format("view$L", bindViewBean.getId());
             }
 
             TypeSpec typeSpec = generateAnonymousInnerClasses(bindViewBean);
-            constructorMethodBuilder.addStatement("%s.setOnClickListener($L)",filedName ,typeSpec);
+            constructorMethodBuilder.addStatement("$L.setOnClickListener($L)", filedName, typeSpec);
         }
 
         //创建构造函数
@@ -201,17 +203,17 @@ public class BindProcessor extends AbstractProcessor {
 
             String methodName = bindViewBean.getMethodName();
 
-            if(!isEmpty(methodName) ){
-                constructorMethodBuilder.addStatement("%s.%s setOnClickListener(null))", TARGET,filedName);
+            if (!isEmpty(methodName)) {
+                constructorMethodBuilder.addStatement("$L.$L setOnClickListener(null))", TARGET, filedName);
             }
-            unbindMethodSpec.addStatement("target.%s = null", filedName);
+            unbindMethodSpec.addStatement("target.$L = null", filedName);
         }
 
-        if (hasSuperClass(elementBean.getSuperClass(),map)) {
+        if (hasSuperClass(elementBean.getSuperClass(), map)) {
             unbindMethodSpec.addStatement("super.unbind()");
         }
 
-        unbindMethodSpec.addStatement("this.%s = null",TARGET);
+        unbindMethodSpec.addStatement("this.$L = null", TARGET);
 
 
         TypeSpec.Builder typeSpec = TypeSpec.classBuilder(getSimpleName(key) + "_ViewBinding")
@@ -220,7 +222,14 @@ public class BindProcessor extends AbstractProcessor {
                 .addMethod(unbindMethodSpec.build())
                 .addModifiers(Modifier.PUBLIC);
 
-
+        //如果有父类则继承父类
+        if (isEmpty(elementBean.getSuperClass())) {
+            typeSpec.addSuperinterface(ClassName.bestGuess("com.zhihaoliang.butterknife.core.Unbinder"));
+        } else {
+            String baseClassNameString = elementBean.getSuperClass() + "_ViewBinding";
+            ClassName baseClassName = ClassName.bestGuess(baseClassNameString);
+            typeSpec.superclass(baseClassName);
+        }
 
         //获取包名
         String packageName = mElementUtils.getPackageOf(typeElement).getQualifiedName().toString();
@@ -231,14 +240,15 @@ public class BindProcessor extends AbstractProcessor {
             //写入java文件
             javaFile.writeTo(mFiler);
         } catch (IOException e) {
-           log.e(e.toString());
+            log.e(e.toString());
         }
 
     }
 
     private String getSimpleName(String key) {
-        int index = key.lastIndexOf("\\.");
-        return key.substring(index+1);
+        int index = key.lastIndexOf(".");
+        log.e(key.substring(index + 1) + "======" + index);
+        return key.substring(index + 1);
     }
 
 
@@ -250,10 +260,10 @@ public class BindProcessor extends AbstractProcessor {
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ClassName.bestGuess("android.view.View"), VIEW);
 
-        if(bindViewBean.isParam()){
-            build.addStatement("target.%s(%s)", bindViewBean.getMethodName(),VIEW);
-        }else{
-            build.addStatement("target.%s()", bindViewBean.getMethodName());
+        if (bindViewBean.isParam()) {
+            build.addStatement("target.$L($L)", bindViewBean.getMethodName(), VIEW);
+        } else {
+            build.addStatement("target.$L()", bindViewBean.getMethodName());
         }
 
         return TypeSpec.anonymousClassBuilder("")
