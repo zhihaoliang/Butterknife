@@ -48,9 +48,17 @@ copy下面红色选中的文章
 把上一步copy替换到gradlew文件中
 ![blockchain](https://raw.githubusercontent.com/zhihaoliang/Butterknife/master/image/gradlew.png "示例图") 
 
-##### 3.3.3.4. 运行Unnamed 然后再选中APP运行就可以
+##### 3.3.3.4. 运行Unnamed 然后再选中APP运行就可以或者在项目根目录直接编译“gradlew compileDebugJavaWithJavac”
 ![blockchain](https://raw.githubusercontent.com/zhihaoliang/Butterknife/master/image/debug.png "示例图") 
 
+### 3.4. 编辑代码的实现  
+#### 3.3.1. 依赖的类库
+```gradle
+implementation project(':butterKnife_annoation')
+implementation 'com.google.auto.service:auto-service:1.0-rc6'
+implementation 'com.squareup:javapoet:1.11.1'
+```
+还要加入java的tool.jar的依赖，位置/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/lib
 
 
 
