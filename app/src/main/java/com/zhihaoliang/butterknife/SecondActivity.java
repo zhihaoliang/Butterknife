@@ -16,6 +16,8 @@ import com.zhihaoliang.annoation.OnClick;
 public class SecondActivity extends BaseActivity {
     @BindView(R.id.txtSecond)
     TextView txtSecond;
+    @BindView(R.id.txtSecond)
+    TextView txtSecond1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,10 +28,11 @@ public class SecondActivity extends BaseActivity {
 
         txtSecond.setText(this.getClass().getName());
         txtTitleAll.setText(this.getClass().getName());
+        txtSecond1.setText(this.getClass().getName()+"1");
     }
 
 
-    @OnClick(R.id.butThree)
+    @OnClick({R.id.butThree,R.id.butThree})
     public void onClick() {
         finish();
     }

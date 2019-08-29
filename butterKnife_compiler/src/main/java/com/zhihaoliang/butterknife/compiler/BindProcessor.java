@@ -7,6 +7,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.sun.tools.javac.code.Symbol;
 import com.zhihaoliang.annoation.OnClick;
 import com.zhihaoliang.butterknife.compiler.bean.BindViewBean;
 import com.zhihaoliang.butterknife.compiler.bean.ElementBean;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +30,6 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
@@ -68,15 +69,16 @@ public class BindProcessor extends AbstractProcessor {
         Messager messager = processingEnvironment.getMessager();
         mElementUtils = processingEnvironment.getElementUtils();
         log = new Log(messager);
-        log.e("=========init1111============");
+        log.e("=========ini==t11711============");
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        log.e("=========proce11ss00 ============");
+        log.e("=========proce11ss010 ============");
         if (set != null && !set.isEmpty()) {
             Map<String, ElementBean> map = new HashMap<>();
             initBindViewBean(roundEnvironment, map, 0);
+            initBindViewBean(roundEnvironment, map, 1);
 
             for (Map.Entry<String, ElementBean> entry : map.entrySet()) {
                 String key = entry.getKey();
@@ -129,6 +131,10 @@ public class BindProcessor extends AbstractProcessor {
             if (elementBean == null) {
                 elementBean = new ElementBean();
                 map.put(className, elementBean);
+                //添加父类节点
+                if (!superClassName.startsWith("android.") && !superClassName.startsWith("java.")) {
+                    elementBean.setSuperClass(superClassName);
+                }
             }
 
             if (elementBean.getBindViewBeans() == null) {
@@ -136,26 +142,58 @@ public class BindProcessor extends AbstractProcessor {
                 elementBean.setBindViewBeans(list);
             }
 
-            BindViewBean bindViewBean = new BindViewBean();
-            bindViewBean.setFiledName(element.getSimpleName().toString());
-            initBindViewBean(element,bindViewBean,state);
-
-            elementBean.getBindViewBeans().add(bindViewBean);
-            //添加父类节点
-            if (!superClassName.startsWith("android.") && !superClassName.startsWith("java.")) {
-                elementBean.setSuperClass(superClassName);
-            }
+            initBindViewBean(element,state,elementBean.getBindViewBeans());
         }
     }
 
-    private void initBindViewBean(Element element, BindViewBean bindViewBean, int state) {
+    private void initBindViewBean(Element element, int state, List<BindViewBean> list) {
         switch (state) {
             case 0:
+                BindViewBean bindViewBean = new BindViewBean();
+                bindViewBean.setFiledName(element.getSimpleName().toString());
                 bindViewBean.setId(element.getAnnotation(BindView.class).value());
+                list.add(bindViewBean);
                 break;
             default:
+                int[] ids = element.getAnnotation(OnClick.class).value();
+                if (ids == null || ids.length == 0) {
+                    return;
+                }
+
+                Integer[] removeDuplicate = removeDuplicate(ids);
+
+                for (Integer id : removeDuplicate) {
+                    bindViewBean = initBindViewBean(list, id);
+                    bindViewBean.setMethodName(element.getSimpleName().toString());
+                    Symbol.MethodSymbol symbol = (Symbol.MethodSymbol) element;
+                    bindViewBean.setParam(symbol.params != null && !symbol.params.isEmpty());
+                    bindViewBean.setId(id);
+                }
                 break;
         }
+    }
+
+
+    //用于去除重复的字段
+    public Integer[] removeDuplicate(int[] arr) {
+        Set<Integer> set = new HashSet();
+        for (int i : arr) {
+            set.add(i);
+        }
+        Integer[] result = new Integer[set.size()];
+        return set.toArray(result);
+    }
+
+
+    private BindViewBean initBindViewBean(List<BindViewBean> list, Integer id) {
+        for (BindViewBean bindViewBean : list) {
+            if (bindViewBean.getId().intValue() == id.intValue()) {
+                return bindViewBean;
+            }
+        }
+        BindViewBean bindViewBean = new BindViewBean();
+        list.add(bindViewBean);
+        return bindViewBean;
     }
 
     private void generateViewBinding(String key, ElementBean elementBean, Map<String, ElementBean> map) {
@@ -198,8 +236,9 @@ public class BindProcessor extends AbstractProcessor {
             }
 
             if (isEmpty(filedName)) {
-                constructorMethodBuilder.addStatement("view$L = $L.findViewById($L)", bindViewBean.getId(), VIEW, bindViewBean.getId());
-                filedName = String.format("view$L", bindViewBean.getId());
+                filedName = String.format("%s.findViewById(%d)",VIEW, bindViewBean.getId());
+            }else{
+                filedName = String.format("%s.%s",TARGET,filedName);
             }
 
             TypeSpec typeSpec = generateAnonymousInnerClasses(bindViewBean);
@@ -267,13 +306,12 @@ public class BindProcessor extends AbstractProcessor {
 
     private String getSimpleName(String key) {
         int index = key.lastIndexOf(".");
-        log.e(key.substring(index + 1) + "======" + index);
         return key.substring(index + 1);
     }
 
 
     private TypeSpec generateAnonymousInnerClasses(BindViewBean bindViewBean) {
-        TypeElement typeElement = mElementUtils.getTypeElement("android.view.View");
+        TypeElement typeElement = mElementUtils.getTypeElement("android.view.View.OnClickListener");
 
         MethodSpec.Builder build = MethodSpec.methodBuilder("onClick")
                 .addAnnotation(Override.class)
